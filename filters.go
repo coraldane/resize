@@ -79,7 +79,7 @@ func lanczos3(in float64) float64 {
 	return 0
 }
 
-func Guassian(sigma float64, in int) float64 {
+func Gaussian(sigma float64, in int) float64 {
 	sqrt2pi := math.Sqrt(math.Pi * 2.0)
 	sigma2 := 2.0 * sigma * sigma
 	sigmap := sigma * sqrt2pi

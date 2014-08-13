@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-func GuassianSmooth(srcImg image.Image, sigma float64, radius int) image.Image {
+func GaussianSmooth(srcImg image.Image, sigma float64, radius int) image.Image {
 	bounds := srcImg.Bounds()
 	width := bounds.Dx()
 	height := bounds.Dy()
@@ -23,7 +23,7 @@ func GuassianSmooth(srcImg image.Image, sigma float64, radius int) image.Image {
 		temp := image.NewRGBA(image.Rect(0, 0, input.Bounds().Dy(), int(width)))
 		result := image.NewRGBA(image.Rect(0, 0, int(width), int(height)))
 		// horizontal filter, results in transposed temporary image
-		coeffs, offset, filterLength := createSmooth8(temp.Bounds().Dy(), input.Bounds().Min.X, radius, sigma, Guassian)
+		coeffs, offset, filterLength := createSmooth8(temp.Bounds().Dy(), input.Bounds().Min.X, radius, sigma, Gaussian)
 		wg.Add(cpus)
 		for i := 0; i < cpus; i++ {
 			slice := makeSlice(temp, i, cpus).(*image.RGBA)
@@ -35,7 +35,7 @@ func GuassianSmooth(srcImg image.Image, sigma float64, radius int) image.Image {
 		wg.Wait()
 
 		// horizontal filter on transposed image, result is not transposed
-		coeffs, offset, filterLength = createSmooth8(result.Bounds().Dy(), temp.Bounds().Min.X, radius, sigma, Guassian)
+		coeffs, offset, filterLength = createSmooth8(result.Bounds().Dy(), temp.Bounds().Min.X, radius, sigma, Gaussian)
 		wg.Add(cpus)
 		for i := 0; i < cpus; i++ {
 			slice := makeSlice(result, i, cpus).(*image.RGBA)
@@ -53,7 +53,7 @@ func GuassianSmooth(srcImg image.Image, sigma float64, radius int) image.Image {
 		temp := newYCC(image.Rect(0, 0, input.Bounds().Dy(), int(width)), input.SubsampleRatio)
 		result := newYCC(image.Rect(0, 0, int(width), int(height)), input.SubsampleRatio)
 
-		coeffs, offset, filterLength := createSmooth8(temp.Bounds().Dy(), input.Bounds().Min.X, radius, sigma, Guassian)
+		coeffs, offset, filterLength := createSmooth8(temp.Bounds().Dy(), input.Bounds().Min.X, radius, sigma, Gaussian)
 		in := ImageYCbCrToYCC(input)
 		wg.Add(cpus)
 		for i := 0; i < cpus; i++ {
@@ -65,7 +65,7 @@ func GuassianSmooth(srcImg image.Image, sigma float64, radius int) image.Image {
 		}
 		wg.Wait()
 
-		coeffs, offset, filterLength = createSmooth8(result.Bounds().Dy(), temp.Bounds().Min.X, radius, sigma, Guassian)
+		coeffs, offset, filterLength = createSmooth8(result.Bounds().Dy(), temp.Bounds().Min.X, radius, sigma, Gaussian)
 		wg.Add(cpus)
 		for i := 0; i < cpus; i++ {
 			slice := makeSlice(result, i, cpus).(*ycc)
@@ -82,7 +82,7 @@ func GuassianSmooth(srcImg image.Image, sigma float64, radius int) image.Image {
 		result := image.NewRGBA64(image.Rect(0, 0, int(width), int(height)))
 
 		// horizontal filter, results in transposed temporary image
-		coeffs, offset, filterLength := createSmooth16(temp.Bounds().Dy(), input.Bounds().Min.X, radius, sigma, Guassian)
+		coeffs, offset, filterLength := createSmooth16(temp.Bounds().Dy(), input.Bounds().Min.X, radius, sigma, Gaussian)
 		wg.Add(cpus)
 		for i := 0; i < cpus; i++ {
 			slice := makeSlice(temp, i, cpus).(*image.RGBA64)
@@ -94,7 +94,7 @@ func GuassianSmooth(srcImg image.Image, sigma float64, radius int) image.Image {
 		wg.Wait()
 
 		// horizontal filter on transposed image, result is not transposed
-		coeffs, offset, filterLength = createSmooth16(result.Bounds().Dy(), temp.Bounds().Min.X, radius, sigma, Guassian)
+		coeffs, offset, filterLength = createSmooth16(result.Bounds().Dy(), temp.Bounds().Min.X, radius, sigma, Gaussian)
 		wg.Add(cpus)
 		for i := 0; i < cpus; i++ {
 			slice := makeSlice(result, i, cpus).(*image.RGBA64)
@@ -111,7 +111,7 @@ func GuassianSmooth(srcImg image.Image, sigma float64, radius int) image.Image {
 		result := image.NewGray(image.Rect(0, 0, int(width), int(height)))
 
 		// horizontal filter, results in transposed temporary image
-		coeffs, offset, filterLength := createSmooth8(temp.Bounds().Dy(), input.Bounds().Min.X, radius, sigma, Guassian)
+		coeffs, offset, filterLength := createSmooth8(temp.Bounds().Dy(), input.Bounds().Min.X, radius, sigma, Gaussian)
 		wg.Add(cpus)
 		for i := 0; i < cpus; i++ {
 			slice := makeSlice(temp, i, cpus).(*image.Gray)
@@ -123,7 +123,7 @@ func GuassianSmooth(srcImg image.Image, sigma float64, radius int) image.Image {
 		wg.Wait()
 
 		// horizontal filter on transposed image, result is not transposed
-		coeffs, offset, filterLength = createSmooth8(result.Bounds().Dy(), temp.Bounds().Min.X, radius, sigma, Guassian)
+		coeffs, offset, filterLength = createSmooth8(result.Bounds().Dy(), temp.Bounds().Min.X, radius, sigma, Gaussian)
 		wg.Add(cpus)
 		for i := 0; i < cpus; i++ {
 			slice := makeSlice(result, i, cpus).(*image.Gray)
@@ -140,7 +140,7 @@ func GuassianSmooth(srcImg image.Image, sigma float64, radius int) image.Image {
 		result := image.NewGray16(image.Rect(0, 0, int(width), int(height)))
 
 		// horizontal filter, results in transposed temporary image
-		coeffs, offset, filterLength := createSmooth16(temp.Bounds().Dy(), input.Bounds().Min.X, radius, sigma, Guassian)
+		coeffs, offset, filterLength := createSmooth16(temp.Bounds().Dy(), input.Bounds().Min.X, radius, sigma, Gaussian)
 		wg.Add(cpus)
 		for i := 0; i < cpus; i++ {
 			slice := makeSlice(temp, i, cpus).(*image.Gray16)
@@ -152,7 +152,7 @@ func GuassianSmooth(srcImg image.Image, sigma float64, radius int) image.Image {
 		wg.Wait()
 
 		// horizontal filter on transposed image, result is not transposed
-		coeffs, offset, filterLength = createSmooth16(result.Bounds().Dy(), temp.Bounds().Min.X, radius, sigma, Guassian)
+		coeffs, offset, filterLength = createSmooth16(result.Bounds().Dy(), temp.Bounds().Min.X, radius, sigma, Gaussian)
 		wg.Add(cpus)
 		for i := 0; i < cpus; i++ {
 			slice := makeSlice(result, i, cpus).(*image.Gray16)
@@ -169,7 +169,7 @@ func GuassianSmooth(srcImg image.Image, sigma float64, radius int) image.Image {
 		result := image.NewRGBA64(image.Rect(0, 0, int(width), int(height)))
 
 		// horizontal filter, results in transposed temporary image
-		coeffs, offset, filterLength := createSmooth16(temp.Bounds().Dy(), input.Bounds().Min.X, radius, sigma, Guassian)
+		coeffs, offset, filterLength := createSmooth16(temp.Bounds().Dy(), input.Bounds().Min.X, radius, sigma, Gaussian)
 		wg.Add(cpus)
 		for i := 0; i < cpus; i++ {
 			slice := makeSlice(temp, i, cpus).(*image.RGBA64)
@@ -181,7 +181,7 @@ func GuassianSmooth(srcImg image.Image, sigma float64, radius int) image.Image {
 		wg.Wait()
 
 		// horizontal filter on transposed image, result is not transposed
-		coeffs, offset, filterLength = createSmooth16(result.Bounds().Dy(), temp.Bounds().Min.X, radius, sigma, Guassian)
+		coeffs, offset, filterLength = createSmooth16(result.Bounds().Dy(), temp.Bounds().Min.X, radius, sigma, Gaussian)
 		wg.Add(cpus)
 		for i := 0; i < cpus; i++ {
 			slice := makeSlice(result, i, cpus).(*image.RGBA64)
