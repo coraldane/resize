@@ -156,8 +156,8 @@ func (p *ycc) YCbCr() *image.YCbCr {
 	return ycbcr
 }
 
-// imageYCbCrToYCC converts a YCbCr image to a ycc image for resizing.
-func imageYCbCrToYCC(in *image.YCbCr) *ycc {
+// ImageYCbCrToYCC converts a YCbCr image to a ycc image for resizing.
+func ImageYCbCrToYCC(in *image.YCbCr) *ycc {
 	w, h := in.Rect.Dx(), in.Rect.Dy()
 	buf := make([]uint8, 3*w*h)
 	p := ycc{Pix: buf, Stride: 3 * w, Rect: in.Rect, SubsampleRatio: in.SubsampleRatio}

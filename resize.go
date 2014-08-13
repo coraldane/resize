@@ -134,7 +134,7 @@ func Resize(width, height uint, img image.Image, interp InterpolationFunction) i
 		result := newYCC(image.Rect(0, 0, int(width), int(height)), input.SubsampleRatio)
 
 		coeffs, offset, filterLength := createWeights8(temp.Bounds().Dy(), input.Bounds().Min.X, taps, blur, scaleX, kernel)
-		in := imageYCbCrToYCC(input)
+		in := ImageYCbCrToYCC(input)
 		wg.Add(cpus)
 		for i := 0; i < cpus; i++ {
 			slice := makeSlice(temp, i, cpus).(*ycc)
@@ -318,7 +318,7 @@ func resizeNearest(width, height uint, scaleX, scaleY float64, img image.Image, 
 		result := newYCC(image.Rect(0, 0, int(width), int(height)), input.SubsampleRatio)
 
 		coeffs, offset, filterLength := createWeightsNearest(temp.Bounds().Dy(), input.Bounds().Min.X, taps, blur, scaleX)
-		in := imageYCbCrToYCC(input)
+		in := ImageYCbCrToYCC(input)
 		wg.Add(cpus)
 		for i := 0; i < cpus; i++ {
 			slice := makeSlice(temp, i, cpus).(*ycc)
