@@ -79,14 +79,6 @@ func lanczos3(in float64) float64 {
 	return 0
 }
 
-func Gaussian(sigma float64, in int) float64 {
-	sqrt2pi := math.Sqrt(math.Pi * 2.0)
-	sigma2 := 2.0 * sigma * sigma
-	sigmap := sigma * sqrt2pi
-	in2 := float64(in * in)
-	return math.Exp(-1.0*in2/sigma2) / sigmap
-}
-
 // range [-256,256]
 func createWeights8(dy, minx, filterLength int, blur, scale float64, kernel func(float64) float64) ([]int16, []int, int) {
 	filterLength = filterLength * int(math.Max(math.Ceil(blur*scale), 1))

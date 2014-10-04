@@ -28,10 +28,10 @@ type Image interface {
 
 func TestImage(t *testing.T) {
 	testImage := []Image{
-		newYCC(image.Rect(0, 0, 10, 10), image.YCbCrSubsampleRatio420),
-		newYCC(image.Rect(0, 0, 10, 10), image.YCbCrSubsampleRatio422),
-		newYCC(image.Rect(0, 0, 10, 10), image.YCbCrSubsampleRatio440),
-		newYCC(image.Rect(0, 0, 10, 10), image.YCbCrSubsampleRatio444),
+		newYcc(image.Rect(0, 0, 10, 10), image.YCbCrSubsampleRatio420),
+		newYcc(image.Rect(0, 0, 10, 10), image.YCbCrSubsampleRatio422),
+		newYcc(image.Rect(0, 0, 10, 10), image.YCbCrSubsampleRatio440),
+		newYcc(image.Rect(0, 0, 10, 10), image.YCbCrSubsampleRatio444),
 	}
 	for _, m := range testImage {
 		if !image.Rect(0, 0, 10, 10).Eq(m.Bounds()) {
@@ -73,8 +73,8 @@ func TestConvertYCbCr(t *testing.T) {
 			}
 		}
 
-		// test conversion from YCbCr to ycc
-		yc := imageYCbCrToYCC(m)
+		// test conversion from YCbCr to Ycc
+		yc := ImageYCbCrToYcc(m)
 		for y := m.Rect.Min.Y; y < m.Rect.Max.Y; y++ {
 			for x := m.Rect.Min.X; x < m.Rect.Max.X; x++ {
 				ystride := 3 * (m.Rect.Max.X - m.Rect.Min.X)
@@ -97,7 +97,7 @@ func TestConvertYCbCr(t *testing.T) {
 			}
 		}
 
-		// test conversion from ycc back to YCbCr
+		// test conversion from Ycc back to YCbCr
 		ym := yc.YCbCr()
 		for y := m.Rect.Min.Y; y < m.Rect.Max.Y; y++ {
 			for x := m.Rect.Min.X; x < m.Rect.Max.X; x++ {

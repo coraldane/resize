@@ -254,7 +254,7 @@ func resizeGray16(in *image.Gray16, out *image.Gray16, scale float64, coeffs []i
 	}
 }
 
-func resizeYCbCr(in *ycc, out *ycc, scale float64, coeffs []int16, offset []int, filterLength int) {
+func resizeYCbCr(in *Ycc, out *Ycc, scale float64, coeffs []int16, offset []int, filterLength int) {
 	oldBounds := in.Bounds()
 	newBounds := out.Bounds()
 	minX := oldBounds.Min.X * 3
@@ -294,7 +294,7 @@ func resizeYCbCr(in *ycc, out *ycc, scale float64, coeffs []int16, offset []int,
 	}
 }
 
-func nearestYCbCr(in *ycc, out *ycc, scale float64, coeffs []bool, offset []int, filterLength int) {
+func nearestYCbCr(in *Ycc, out *Ycc, scale float64, coeffs []bool, offset []int, filterLength int) {
 	oldBounds := in.Bounds()
 	newBounds := out.Bounds()
 	minX := oldBounds.Min.X * 3

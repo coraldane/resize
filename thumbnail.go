@@ -24,10 +24,10 @@ import (
 // original aspect ratio and using the interpolation function interp.
 // It will return original image, without processing it, if original sizes
 // are already smaller than provided constraints.
-func Thumbnail(maxWidth, maxHeight uint, img image.Image, interp InterpolationFunction) image.Image {
+func Thumbnail(maxWidth, maxHeight int, img image.Image, interp InterpolationFunction) image.Image {
 	origBounds := img.Bounds()
-	origWidth := uint(origBounds.Dx())
-	origHeight := uint(origBounds.Dy())
+	origWidth := origBounds.Dx()
+	origHeight := origBounds.Dy()
 	newWidth, newHeight := origWidth, origHeight
 
 	// Return original image if it have same or smaller size as constraints
@@ -37,7 +37,7 @@ func Thumbnail(maxWidth, maxHeight uint, img image.Image, interp InterpolationFu
 
 	// Preserve aspect ratio
 	if origWidth > maxWidth {
-		newHeight = uint(origHeight * maxWidth / origWidth)
+		newHeight = origHeight * maxWidth / origWidth
 		if newHeight < 1 {
 			newHeight = 1
 		}
@@ -45,7 +45,7 @@ func Thumbnail(maxWidth, maxHeight uint, img image.Image, interp InterpolationFu
 	}
 
 	if newHeight > maxHeight {
-		newWidth = uint(newWidth * maxHeight / newHeight)
+		newWidth = newWidth * maxHeight / newHeight
 		if newWidth < 1 {
 			newWidth = 1
 		}

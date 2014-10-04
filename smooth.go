@@ -2,6 +2,7 @@ package resize
 
 import (
 	"image"
+	"math"
 	"runtime"
 	"sync"
 )
@@ -49,15 +50,15 @@ func GaussianSmooth(srcImg image.Image, sigma float64, radius int) image.Image {
 	case *image.YCbCr:
 		// 8-bit precision
 		// accessing the YCbCr arrays in a tight loop is slow.
-		// converting the image to ycc increases performance by 2x.
-		temp := newYCC(image.Rect(0, 0, input.Bounds().Dy(), int(width)), input.SubsampleRatio)
-		result := newYCC(image.Rect(0, 0, int(width), int(height)), input.SubsampleRatio)
+		// converting the image to Ycc increases performance by 2x.
+		temp := newYcc(image.Rect(0, 0, input.Bounds().Dy(), int(width)), input.SubsampleRatio)
+		result := newYcc(image.Rect(0, 0, int(width), int(height)), input.SubsampleRatio)
 
 		coeffs, offset, filterLength := createSmooth8(temp.Bounds().Dy(), input.Bounds().Min.X, radius, sigma, Gaussian)
-		in := ImageYCbCrToYCC(input)
+		in := ImageYCbCrToYcc(input)
 		wg.Add(cpus)
 		for i := 0; i < cpus; i++ {
-			slice := makeSlice(temp, i, cpus).(*ycc)
+			slice := makeSlice(temp, i, cpus).(*Ycc)
 			go func() {
 				defer wg.Done()
 				resizeYCbCr(in, slice, scaleX, coeffs, offset, filterLength)
@@ -68,7 +69,7 @@ func GaussianSmooth(srcImg image.Image, sigma float64, radius int) image.Image {
 		coeffs, offset, filterLength = createSmooth8(result.Bounds().Dy(), temp.Bounds().Min.X, radius, sigma, Gaussian)
 		wg.Add(cpus)
 		for i := 0; i < cpus; i++ {
-			slice := makeSlice(result, i, cpus).(*ycc)
+			slice := makeSlice(result, i, cpus).(*Ycc)
 			go func() {
 				defer wg.Done()
 				resizeYCbCr(temp, slice, scaleY, coeffs, offset, filterLength)
@@ -196,14 +197,15 @@ func GaussianSmooth(srcImg image.Image, sigma float64, radius int) image.Image {
 }
 
 // range [-256,256]
-func createSmooth8(dy, minx, filterLength int, sigma float64, kernel func(float64, int) float64) ([]int16, []int, int) {
+func createSmooth8(dy, minx, radius int, sigma float64, kernel func(float64, int) float64) ([]int16, []int, int) {
+	filterLength := 2*radius + 2
 	coeffs := make([]int16, dy*filterLength)
 	start := make([]int, dy)
 	for y := 0; y < dy; y++ {
 		interpX := float64(y) + 0.5 + float64(minx)
 		start[y] = int(interpX) - filterLength/2 + 1
-		for i := 0; i < filterLength; i++ {
-			coeffs[y*filterLength+i] = int16(kernel(sigma, i) * 256)
+		for i := -radius; i <= radius; i++ {
+			coeffs[y*filterLength+i+radius] = int16(kernel(sigma, i) * 256)
 		}
 	}
 
@@ -211,7 +213,8 @@ func createSmooth8(dy, minx, filterLength int, sigma float64, kernel func(float6
 }
 
 // range [-65536,65536]
-func createSmooth16(dy, minx, filterLength int, sigma float64, kernel func(float64, int) float64) ([]int32, []int, int) {
+func createSmooth16(dy, minx, radius int, sigma float64, kernel func(float64, int) float64) ([]int32, []int, int) {
+	filterLength := 2*radius + 2
 	coeffs := make([]int32, dy*filterLength)
 	start := make([]int, dy)
 	for y := 0; y < dy; y++ {
@@ -223,4 +226,12 @@ func createSmooth16(dy, minx, filterLength int, sigma float64, kernel func(float
 	}
 
 	return coeffs, start, filterLength
+}
+
+func Gaussian(sigma float64, in int) float64 {
+	sqrt2pi := math.Sqrt(math.Pi * 2.0)
+	sigma2 := 2.0 * sigma * sigma
+	sigmap := sigma * sqrt2pi
+	in2 := float64(in * in)
+	return math.Exp(-1.0*in2/sigma2) / sigmap
 }

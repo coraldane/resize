@@ -78,13 +78,13 @@ var blur = 1.0
 // If one of the parameters width or height is set to 0, its size will be calculated so that
 // the aspect ratio is that of the originating image.
 // The resizing algorithm uses channels for parallel computation.
-func Resize(width, height uint, img image.Image, interp InterpolationFunction) image.Image {
+func Resize(width, height int, img image.Image, interp InterpolationFunction) image.Image {
 	scaleX, scaleY := calcFactors(width, height, float64(img.Bounds().Dx()), float64(img.Bounds().Dy()))
 	if width == 0 {
-		width = uint(0.7 + float64(img.Bounds().Dx())/scaleX)
+		width = int(0.7 + float64(img.Bounds().Dx())/scaleX)
 	}
 	if height == 0 {
-		height = uint(0.7 + float64(img.Bounds().Dy())/scaleY)
+		height = int(0.7 + float64(img.Bounds().Dy())/scaleY)
 	}
 	if interp == NearestNeighbor {
 		return resizeNearest(width, height, scaleX, scaleY, img, interp)
@@ -129,15 +129,15 @@ func Resize(width, height uint, img image.Image, interp InterpolationFunction) i
 	case *image.YCbCr:
 		// 8-bit precision
 		// accessing the YCbCr arrays in a tight loop is slow.
-		// converting the image to ycc increases performance by 2x.
-		temp := newYCC(image.Rect(0, 0, input.Bounds().Dy(), int(width)), input.SubsampleRatio)
-		result := newYCC(image.Rect(0, 0, int(width), int(height)), input.SubsampleRatio)
+		// converting the image to Ycc increases performance by 2x.
+		temp := newYcc(image.Rect(0, 0, input.Bounds().Dy(), int(width)), input.SubsampleRatio)
+		result := newYcc(image.Rect(0, 0, int(width), int(height)), input.SubsampleRatio)
 
 		coeffs, offset, filterLength := createWeights8(temp.Bounds().Dy(), input.Bounds().Min.X, taps, blur, scaleX, kernel)
-		in := ImageYCbCrToYCC(input)
+		in := ImageYCbCrToYcc(input)
 		wg.Add(cpus)
 		for i := 0; i < cpus; i++ {
-			slice := makeSlice(temp, i, cpus).(*ycc)
+			slice := makeSlice(temp, i, cpus).(*Ycc)
 			go func() {
 				defer wg.Done()
 				resizeYCbCr(in, slice, scaleX, coeffs, offset, filterLength)
@@ -148,7 +148,7 @@ func Resize(width, height uint, img image.Image, interp InterpolationFunction) i
 		coeffs, offset, filterLength = createWeights8(result.Bounds().Dy(), temp.Bounds().Min.X, taps, blur, scaleY, kernel)
 		wg.Add(cpus)
 		for i := 0; i < cpus; i++ {
-			slice := makeSlice(result, i, cpus).(*ycc)
+			slice := makeSlice(result, i, cpus).(*Ycc)
 			go func() {
 				defer wg.Done()
 				resizeYCbCr(temp, slice, scaleY, coeffs, offset, filterLength)
@@ -275,7 +275,7 @@ func Resize(width, height uint, img image.Image, interp InterpolationFunction) i
 	}
 }
 
-func resizeNearest(width, height uint, scaleX, scaleY float64, img image.Image, interp InterpolationFunction) image.Image {
+func resizeNearest(width, height int, scaleX, scaleY float64, img image.Image, interp InterpolationFunction) image.Image {
 	taps, _ := interp.kernel()
 	cpus := runtime.NumCPU()
 	wg := sync.WaitGroup{}
@@ -283,8 +283,8 @@ func resizeNearest(width, height uint, scaleX, scaleY float64, img image.Image, 
 	switch input := img.(type) {
 	case *image.RGBA:
 		// 8-bit precision
-		temp := image.NewRGBA(image.Rect(0, 0, input.Bounds().Dy(), int(width)))
-		result := image.NewRGBA(image.Rect(0, 0, int(width), int(height)))
+		temp := image.NewRGBA(image.Rect(0, 0, input.Bounds().Dy(), width))
+		result := image.NewRGBA(image.Rect(0, 0, width, height))
 
 		// horizontal filter, results in transposed temporary image
 		coeffs, offset, filterLength := createWeightsNearest(temp.Bounds().Dy(), input.Bounds().Min.X, taps, blur, scaleX)
@@ -313,15 +313,15 @@ func resizeNearest(width, height uint, scaleX, scaleY float64, img image.Image, 
 	case *image.YCbCr:
 		// 8-bit precision
 		// accessing the YCbCr arrays in a tight loop is slow.
-		// converting the image to ycc increases performance by 2x.
-		temp := newYCC(image.Rect(0, 0, input.Bounds().Dy(), int(width)), input.SubsampleRatio)
-		result := newYCC(image.Rect(0, 0, int(width), int(height)), input.SubsampleRatio)
+		// converting the image to Ycc increases performance by 2x.
+		temp := newYcc(image.Rect(0, 0, input.Bounds().Dy(), int(width)), input.SubsampleRatio)
+		result := newYcc(image.Rect(0, 0, int(width), int(height)), input.SubsampleRatio)
 
 		coeffs, offset, filterLength := createWeightsNearest(temp.Bounds().Dy(), input.Bounds().Min.X, taps, blur, scaleX)
-		in := ImageYCbCrToYCC(input)
+		in := ImageYCbCrToYcc(input)
 		wg.Add(cpus)
 		for i := 0; i < cpus; i++ {
-			slice := makeSlice(temp, i, cpus).(*ycc)
+			slice := makeSlice(temp, i, cpus).(*Ycc)
 			go func() {
 				defer wg.Done()
 				nearestYCbCr(in, slice, scaleX, coeffs, offset, filterLength)
@@ -332,7 +332,7 @@ func resizeNearest(width, height uint, scaleX, scaleY float64, img image.Image, 
 		coeffs, offset, filterLength = createWeightsNearest(result.Bounds().Dy(), temp.Bounds().Min.X, taps, blur, scaleY)
 		wg.Add(cpus)
 		for i := 0; i < cpus; i++ {
-			slice := makeSlice(result, i, cpus).(*ycc)
+			slice := makeSlice(result, i, cpus).(*Ycc)
 			go func() {
 				defer wg.Done()
 				nearestYCbCr(temp, slice, scaleY, coeffs, offset, filterLength)
@@ -461,7 +461,7 @@ func resizeNearest(width, height uint, scaleX, scaleY float64, img image.Image, 
 }
 
 // Calculates scaling factors using old and new image dimensions.
-func calcFactors(width, height uint, oldWidth, oldHeight float64) (scaleX, scaleY float64) {
+func calcFactors(width, height int, oldWidth, oldHeight float64) (scaleX, scaleY float64) {
 	if width == 0 {
 		if height == 0 {
 			scaleX = 1.0

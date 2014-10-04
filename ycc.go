@@ -21,9 +21,9 @@ import (
 	"image/color"
 )
 
-// ycc is an in memory YCbCr image.  The Y, Cb and Cr samples are held in a
+// Ycc is an in memory YCbCr image.  The Y, Cb and Cr samples are held in a
 // single slice to increase resizing performance.
-type ycc struct {
+type Ycc struct {
 	// Pix holds the image's pixels, in Y, Cb, Cr order. The pixel at
 	// (x, y) starts at Pix[(y-Rect.Min.Y)*Stride + (x-Rect.Min.X)*3].
 	Pix []uint8
@@ -37,19 +37,19 @@ type ycc struct {
 
 // PixOffset returns the index of the first element of Pix that corresponds to
 // the pixel at (x, y).
-func (p *ycc) PixOffset(x, y int) int {
+func (p *Ycc) PixOffset(x, y int) int {
 	return (y * p.Stride) + (x * 3)
 }
 
-func (p *ycc) Bounds() image.Rectangle {
+func (p *Ycc) Bounds() image.Rectangle {
 	return p.Rect
 }
 
-func (p *ycc) ColorModel() color.Model {
+func (p *Ycc) ColorModel() color.Model {
 	return color.YCbCrModel
 }
 
-func (p *ycc) At(x, y int) color.Color {
+func (p *Ycc) At(x, y int) color.Color {
 	if !(image.Point{x, y}.In(p.Rect)) {
 		return color.YCbCr{}
 	}
@@ -61,19 +61,19 @@ func (p *ycc) At(x, y int) color.Color {
 	}
 }
 
-func (p *ycc) Opaque() bool {
+func (p *Ycc) Opaque() bool {
 	return true
 }
 
 // SubImage returns an image representing the portion of the image p visible
 // through r. The returned value shares pixels with the original image.
-func (p *ycc) SubImage(r image.Rectangle) image.Image {
+func (p *Ycc) SubImage(r image.Rectangle) image.Image {
 	r = r.Intersect(p.Rect)
 	if r.Empty() {
-		return &ycc{SubsampleRatio: p.SubsampleRatio}
+		return &Ycc{SubsampleRatio: p.SubsampleRatio}
 	}
 	i := p.PixOffset(r.Min.X, r.Min.Y)
-	return &ycc{
+	return &Ycc{
 		Pix:            p.Pix[i:],
 		Stride:         p.Stride,
 		Rect:           r,
@@ -81,16 +81,16 @@ func (p *ycc) SubImage(r image.Rectangle) image.Image {
 	}
 }
 
-// newYCC returns a new ycc with the given bounds and subsample ratio.
-func newYCC(r image.Rectangle, s image.YCbCrSubsampleRatio) *ycc {
+// newYcc returns a new Ycc with the given bounds and subsample ratio.
+func newYcc(r image.Rectangle, s image.YCbCrSubsampleRatio) *Ycc {
 	w, h := r.Dx(), r.Dy()
 	buf := make([]uint8, 3*w*h)
-	return &ycc{Pix: buf, Stride: 3 * w, Rect: r, SubsampleRatio: s}
+	return &Ycc{Pix: buf, Stride: 3 * w, Rect: r, SubsampleRatio: s}
 }
 
-// YCbCr converts ycc to a YCbCr image with the same subsample ratio
-// as the YCbCr image that ycc was generated from.
-func (p *ycc) YCbCr() *image.YCbCr {
+// YCbCr converts Ycc to a YCbCr image with the same subsample ratio
+// as the YCbCr image that Ycc was generated from.
+func (p *Ycc) YCbCr() *image.YCbCr {
 	ycbcr := image.NewYCbCr(p.Rect, p.SubsampleRatio)
 	var off int
 
@@ -156,11 +156,11 @@ func (p *ycc) YCbCr() *image.YCbCr {
 	return ycbcr
 }
 
-// ImageYCbCrToYCC converts a YCbCr image to a ycc image for resizing.
-func ImageYCbCrToYCC(in *image.YCbCr) *ycc {
+// ImageYCbCrToYcc converts a YCbCr image to a Ycc image for resizing.
+func ImageYCbCrToYcc(in *image.YCbCr) *Ycc {
 	w, h := in.Rect.Dx(), in.Rect.Dy()
 	buf := make([]uint8, 3*w*h)
-	p := ycc{Pix: buf, Stride: 3 * w, Rect: in.Rect, SubsampleRatio: in.SubsampleRatio}
+	p := Ycc{Pix: buf, Stride: 3 * w, Rect: in.Rect, SubsampleRatio: in.SubsampleRatio}
 	var off int
 
 	switch in.SubsampleRatio {
