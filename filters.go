@@ -17,6 +17,7 @@ THIS SOFTWARE.
 package resize
 
 import (
+	"log"
 	"math"
 )
 
@@ -84,6 +85,8 @@ func createWeights8(dy, minx, filterLength int, blur, scale float64, kernel func
 	filterLength = filterLength * int(math.Max(math.Ceil(blur*scale), 1))
 	filterFactor := math.Min(1./(blur*scale), 1)
 
+	// log.Printf("dy:%v,minx:%v,filterLength:%v,filterFactor:%v,scale:%v.",
+	// 	dy, minx, filterLength, filterFactor, scale)
 	coeffs := make([]int16, dy*filterLength)
 	start := make([]int, dy)
 	for y := 0; y < dy; y++ {
@@ -104,6 +107,8 @@ func createWeights16(dy, minx, filterLength int, blur, scale float64, kernel fun
 	filterLength = filterLength * int(math.Max(math.Ceil(blur*scale), 1))
 	filterFactor := math.Min(1./(blur*scale), 1)
 
+	log.Printf("dy:%v,minx:%v,filterLength:%v,filterFactor:%v,scale:%v.",
+		dy, minx, filterLength, filterFactor, scale)
 	coeffs := make([]int32, dy*filterLength)
 	start := make([]int, dy)
 	for y := 0; y < dy; y++ {
